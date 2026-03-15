@@ -1,4 +1,6 @@
 class Resource
+  INITIALIZING_COLOR = "8b0000" # dark red — cycle started, status not yet determined
+
   STATUS_COLORS = {
     error:                      "ff0000", # bright red — something went wrong
     low_insufficient_inputs:    "ffa500", # light orange — critically low stock AND inputs missing

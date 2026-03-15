@@ -73,6 +73,7 @@ class ResourceManager
 
   def update_status!
     LOGGER.info("#{self.class}: update_status!")
+    remote.initialize_status_levers!(prefix)
     tsort.each(&:update_status!)
   end
 

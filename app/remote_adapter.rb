@@ -32,6 +32,17 @@ class RemoteAdapter
     true
   end
 
+  def initialize_status_levers!(prefix)
+    pattern = /\A#{Regexp.escape(prefix)}:[^:]+:S\z/
+    levers
+      .map { |l| l["name"] }
+      .select { |name| name.match?(pattern) }
+      .each do |name|
+        switch_on(name)
+        set_color(name, Resource::INITIALIZING_COLOR)
+      end
+  end
+
   # Adapters
 
   def adapters
