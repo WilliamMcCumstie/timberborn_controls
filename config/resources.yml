@@ -1,3 +1,21 @@
 dependencies:
   planks:
     - logs
+  gears:
+    - planks
+  metal_parts:
+    - logs
+    - scrap_metals
+  metal_blocks:
+    - logs
+    - scrap_metals
+  treated_planks:
+    - pine_resins
+    - planks
+  extracts:
+    - badwaters
+    - logs
+  explosives:
+    - badwaters
+  fireworks:
+    - badwaters
