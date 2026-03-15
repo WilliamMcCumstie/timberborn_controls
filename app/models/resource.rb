@@ -1,9 +1,11 @@
 class Resource
   STATUS_COLORS = {
-    error:               "ff0000",
-    insufficient_inputs: "ffa500",
-    stand_by:            "0000ff",
-    manufacture:         "00ff00"
+    error:                      "ff0000", # bright red — something went wrong
+    low_insufficient_inputs:    "ffa500", # light orange — critically low stock AND inputs missing
+    high_insufficient_inputs:   "b35900", # dark orange — has some stock but inputs still missing
+    stand_by:                   "00008b", # dark blue — storage full, not manufacturing
+    low_manufacture:            "00ff00", # light green — manufacturing but critically low stock
+    high_manufacture:           "006400"  # dark green — manufacturing, stock above low setpoint
   }.freeze
 
   attr_reader :name
@@ -48,8 +50,11 @@ class Resource
   def determine_status
     status = begin
       return :stand_by if high
-      return :insufficient_inputs if dependencies.any? { |dep| !dep.low }
-      :manufacture
+      if dependencies.any? { |dep| !dep.low }
+        return low ? :high_insufficient_inputs : :low_insufficient_inputs
+      end
+      return :low_manufacture unless low
+      :high_manufacture
     rescue
       :error
     end
@@ -64,7 +69,7 @@ class Resource
 
   STATUS_COLORS.each_key do |status|
     define_method(:"#{status}!") do
-      status == :manufacture ? switch_on : switch_off
+      [:low_manufacture, :high_manufacture].include?(status) ? switch_on : switch_off
       set_color(STATUS_COLORS[status])
     end
   end

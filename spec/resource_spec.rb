@@ -52,13 +52,21 @@ RSpec.describe Resource do
   describe "status color helpers" do
     it "defines STATUS_COLORS" do
       expect(Resource::STATUS_COLORS[:error]).to eq("ff0000")
-      expect(Resource::STATUS_COLORS[:insufficient_inputs]).to eq("ffa500")
-      expect(Resource::STATUS_COLORS[:stand_by]).to eq("0000ff")
-      expect(Resource::STATUS_COLORS[:manufacture]).to eq("00ff00")
+      expect(Resource::STATUS_COLORS[:low_insufficient_inputs]).to eq("ffa500")
+      expect(Resource::STATUS_COLORS[:high_insufficient_inputs]).to eq("b35900")
+      expect(Resource::STATUS_COLORS[:stand_by]).to eq("00008b")
+      expect(Resource::STATUS_COLORS[:low_manufacture]).to eq("00ff00")
+      expect(Resource::STATUS_COLORS[:high_manufacture]).to eq("006400")
     end
 
-    it "#manufacture! switches on and sets green" do
-      resource.manufacture!
+    it "#high_manufacture! switches on and sets dark green" do
+      resource.high_manufacture!
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be true
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("006400")
+    end
+
+    it "#low_manufacture! switches on and sets light green" do
+      resource.low_manufacture!
       expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be true
       expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("00ff00")
     end
@@ -70,24 +78,40 @@ RSpec.describe Resource do
       expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("ff0000")
     end
 
-    it "#insufficient_inputs! switches off and sets orange" do
+    it "#low_insufficient_inputs! switches off and sets light orange" do
       FakeTimberborn.levers["P:logs:M"]["state"] = true
-      resource.insufficient_inputs!
+      resource.low_insufficient_inputs!
       expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be false
       expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("ffa500")
+    end
+
+    it "#high_insufficient_inputs! switches off and sets dark orange" do
+      FakeTimberborn.levers["P:logs:M"]["state"] = true
+      resource.high_insufficient_inputs!
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be false
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("b35900")
     end
 
     it "#stand_by! switches off and sets blue" do
       FakeTimberborn.levers["P:logs:M"]["state"] = true
       resource.stand_by!
       expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be false
-      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("0000ff")
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("00008b")
     end
   end
 
   describe "#update_status!" do
-    it "applies manufacture! when logs should manufacture" do
+    it "applies high_manufacture! when logs above low and not high" do
       FakeTimberborn.adapters["P:logs:H"]["state"] = false
+      FakeTimberborn.adapters["P:logs:L"]["state"] = true
+      resource.update_status!
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be true
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("006400")
+    end
+
+    it "applies low_manufacture! when logs below low setpoint" do
+      FakeTimberborn.adapters["P:logs:H"]["state"] = false
+      FakeTimberborn.adapters["P:logs:L"]["state"] = false
       resource.update_status!
       expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be true
       expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("00ff00")
@@ -97,15 +121,16 @@ RSpec.describe Resource do
       FakeTimberborn.adapters["P:logs:H"]["state"] = true
       resource.update_status!
       expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be false
-      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("0000ff")
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("00008b")
     end
 
-    it "applies insufficient_inputs! for planks when logs not at low" do
+    it "applies high_insufficient_inputs! for planks when logs not at low but planks at low" do
       FakeTimberborn.adapters["P:planks:H"]["state"] = false
+      FakeTimberborn.adapters["P:planks:L"]["state"] = true
       FakeTimberborn.adapters["P:logs:L"]["state"] = false
       manager.planks.update_status!
       expect(FakeTimberborn.levers["P:planks:M"]["state"]).to be false
-      expect(FakeTimberborn.levers["P:planks:S"]["color"]).to eq("ffa500")
+      expect(FakeTimberborn.levers["P:planks:S"]["color"]).to eq("b35900")
     end
   end
 
@@ -126,21 +151,37 @@ RSpec.describe Resource do
       expect(resource.determine_status).to eq(:stand_by)
     end
 
-    it "returns :manufacture when not high and no dependencies" do
+    it "returns :high_manufacture when not high, above low, no dependencies" do
       FakeTimberborn.adapters["P:logs:H"]["state"] = false
-      expect(resource.determine_status).to eq(:manufacture)
-    end
-
-    it "returns :insufficient_inputs for planks when logs is not at low" do
-      FakeTimberborn.adapters["P:planks:H"]["state"] = false
-      FakeTimberborn.adapters["P:logs:L"]["state"] = false
-      expect(manager.planks.determine_status).to eq(:insufficient_inputs)
-    end
-
-    it "returns :manufacture for planks when logs is at low" do
-      FakeTimberborn.adapters["P:planks:H"]["state"] = false
       FakeTimberborn.adapters["P:logs:L"]["state"] = true
-      expect(manager.planks.determine_status).to eq(:manufacture)
+      expect(resource.determine_status).to eq(:high_manufacture)
+    end
+
+    it "returns :low_manufacture when not high, below low, no dependencies" do
+      FakeTimberborn.adapters["P:logs:H"]["state"] = false
+      FakeTimberborn.adapters["P:logs:L"]["state"] = false
+      expect(resource.determine_status).to eq(:low_manufacture)
+    end
+
+    it "returns :high_insufficient_inputs for planks when deps not at low and own low is true" do
+      FakeTimberborn.adapters["P:planks:H"]["state"] = false
+      FakeTimberborn.adapters["P:planks:L"]["state"] = true
+      FakeTimberborn.adapters["P:logs:L"]["state"] = false
+      expect(manager.planks.determine_status).to eq(:high_insufficient_inputs)
+    end
+
+    it "returns :low_insufficient_inputs for planks when deps not at low and own low is false" do
+      FakeTimberborn.adapters["P:planks:H"]["state"] = false
+      FakeTimberborn.adapters["P:planks:L"]["state"] = false
+      FakeTimberborn.adapters["P:logs:L"]["state"] = false
+      expect(manager.planks.determine_status).to eq(:low_insufficient_inputs)
+    end
+
+    it "returns :high_manufacture for planks when logs is at low" do
+      FakeTimberborn.adapters["P:planks:H"]["state"] = false
+      FakeTimberborn.adapters["P:planks:L"]["state"] = true
+      FakeTimberborn.adapters["P:logs:L"]["state"] = true
+      expect(manager.planks.determine_status).to eq(:high_manufacture)
     end
   end
 end
