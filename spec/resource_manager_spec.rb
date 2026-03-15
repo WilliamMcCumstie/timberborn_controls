@@ -39,6 +39,36 @@ RSpec.describe ResourceManager do
   end
 
 
+  describe "scrap_metals dependencies" do
+    around do |example|
+      original = ENV["SCRAP_METALS_MODE"]
+      example.run
+      ENV["SCRAP_METALS_MODE"] = original
+    end
+
+    it "has no dependencies in 'none' mode" do
+      ENV["SCRAP_METALS_MODE"] = "none"
+      expect(ResourceManager.new.scrap_metals.dependencies).to be_empty
+    end
+
+    it "depends on treated_planks in 'basic' mode" do
+      ENV["SCRAP_METALS_MODE"] = "basic"
+      deps = ResourceManager.new.scrap_metals.dependencies
+      expect(deps.map(&:name)).to eq(["treated_planks"])
+    end
+
+    it "depends on treated_planks and extracts in 'enhanced' mode" do
+      ENV["SCRAP_METALS_MODE"] = "enhanced"
+      deps = ResourceManager.new.scrap_metals.dependencies
+      expect(deps.map(&:name)).to eq(["treated_planks", "extracts"])
+    end
+
+    it "raises on an invalid mode" do
+      ENV["SCRAP_METALS_MODE"] = "bogus"
+      expect { ResourceManager.new }.to raise_error(/Invalid SCRAP_METALS_MODE/)
+    end
+  end
+
   describe "prefix" do
     it "defaults to Config::RESOURCE_PREFIX" do
       expect(manager.logs.prefix).to eq(Config::RESOURCE_PREFIX)

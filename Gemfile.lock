@@ -3,6 +3,7 @@ GEM
   specs:
     base64 (0.3.0)
     diff-lcs (1.6.2)
+    dotenv (3.2.0)
     faraday (2.14.1)
       faraday-net_http (>= 2.0, < 3.5)
       json
@@ -57,6 +58,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  dotenv
   faraday
   rack-test
   rackup

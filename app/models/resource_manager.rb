@@ -9,6 +9,11 @@ class ResourceManager
     @prefix = prefix
     @remote = remote
     @config = YAML.load_file(CONFIG_PATH)
+    modes = @config.fetch("scrap_metals_modes")
+    mode  = Config.scrap_metals_mode
+    raise "Invalid SCRAP_METALS_MODE: #{mode.inspect}. Valid: #{modes.keys.join(', ')}" unless modes.key?(mode)
+    scrap_deps = modes[mode]
+    @config["dependencies"]["scrap_metals"] = scrap_deps unless scrap_deps.empty?
   end
 
   def logs

@@ -3,6 +3,10 @@ require "faraday"
 require "logger"
 require "yaml"
 require "tsort"
+require "dotenv"
+
+files = ENV["APP_ENV"] == "test" ? [".env"] : [".env.local", ".env"]
+Dotenv.load(*files)
 
 require_relative "config"
 require_relative "app/logger"

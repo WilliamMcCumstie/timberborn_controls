@@ -19,3 +19,8 @@ dependencies:
     - badwaters
   fireworks:
     - badwaters
+
+scrap_metals_modes:
+  none:     []
+  basic:    [treated_planks]
+  enhanced: [treated_planks, extracts]

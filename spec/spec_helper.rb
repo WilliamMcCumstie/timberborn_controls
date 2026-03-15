@@ -14,6 +14,7 @@
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 require "rack/test"
+ENV["APP_ENV"] ||= "test"
 require_relative "../boot"
 require_relative "support/fake_timberborn"
 require_relative "support/fake_server"
