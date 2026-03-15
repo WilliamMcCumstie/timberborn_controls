@@ -4,13 +4,17 @@ require "json"
 class FakeTimberborn < Sinatra::Base
   set :protection, except: :host_routing
   DEFAULT_LEVERS = {
-    "P:log:S" => { "name" => "P:log:S", "state" => false, "springReturn" => false },
-    "P:log:M" => { "name" => "P:log:M", "state" => false, "springReturn" => false }
+    "P:logs:S"   => { "name" => "P:logs:S",   "state" => false, "springReturn" => false },
+    "P:logs:M"   => { "name" => "P:logs:M",   "state" => false, "springReturn" => false },
+    "P:planks:S" => { "name" => "P:planks:S", "state" => false, "springReturn" => false },
+    "P:planks:M" => { "name" => "P:planks:M", "state" => false, "springReturn" => false }
   }.freeze
 
   DEFAULT_ADAPTERS = {
-    "P:log:L" => { "name" => "P:log:L", "state" => false },
-    "P:log:H" => { "name" => "P:log:H", "state" => false }
+    "P:logs:L"   => { "name" => "P:logs:L",   "state" => false },
+    "P:logs:H"   => { "name" => "P:logs:H",   "state" => false },
+    "P:planks:L" => { "name" => "P:planks:L", "state" => false },
+    "P:planks:H" => { "name" => "P:planks:H", "state" => false }
   }.freeze
 
   def self.reset!

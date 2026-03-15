@@ -7,16 +7,16 @@ RSpec.describe FakeTimberborn do
       expect(last_response.status).to eq(200)
       body = JSON.parse(last_response.body)
       expect(body).to be_an(Array)
-      expect(body.first["name"]).to eq("P:log:S")
+      expect(body.first["name"]).to eq("P:logs:S")
     end
   end
 
   describe "GET /api/levers/:name" do
     it "returns a single lever" do
-      get "/api/levers/P%3Alog%3AS"
+      get "/api/levers/P%3Alogs%3AS"
       expect(last_response.status).to eq(200)
       body = JSON.parse(last_response.body)
-      expect(body["name"]).to eq("P:log:S")
+      expect(body["name"]).to eq("P:logs:S")
     end
 
     it "returns 404 for unknown lever" do
@@ -27,10 +27,10 @@ RSpec.describe FakeTimberborn do
 
   describe "POST /api/switch-on/:name" do
     it "switches the lever on" do
-      post "/api/switch-on/P%3Alog%3AS"
+      post "/api/switch-on/P%3Alogs%3AS"
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq("OK")
-      expect(FakeTimberborn.levers["P:log:S"]["state"]).to be true
+      expect(FakeTimberborn.levers["P:logs:S"]["state"]).to be true
     end
 
     it "returns 404 for unknown lever" do
@@ -41,11 +41,11 @@ RSpec.describe FakeTimberborn do
 
   describe "POST /api/switch-off/:name" do
     it "switches the lever off" do
-      FakeTimberborn.levers["P:log:S"]["state"] = true
-      post "/api/switch-off/P%3Alog%3AS"
+      FakeTimberborn.levers["P:logs:S"]["state"] = true
+      post "/api/switch-off/P%3Alogs%3AS"
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq("OK")
-      expect(FakeTimberborn.levers["P:log:S"]["state"]).to be false
+      expect(FakeTimberborn.levers["P:logs:S"]["state"]).to be false
     end
 
     it "returns 404 for unknown lever" do
@@ -56,10 +56,10 @@ RSpec.describe FakeTimberborn do
 
   describe "POST /api/color/:name/:hex" do
     it "sets the lever colour" do
-      post "/api/color/P%3Alog%3AS/ff0000"
+      post "/api/color/P%3Alogs%3AS/ff0000"
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq("OK")
-      expect(FakeTimberborn.levers["P:log:S"]["color"]).to eq("ff0000")
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("ff0000")
     end
 
     it "returns 404 for unknown lever" do
@@ -74,16 +74,16 @@ RSpec.describe FakeTimberborn do
       expect(last_response.status).to eq(200)
       body = JSON.parse(last_response.body)
       expect(body).to be_an(Array)
-      expect(body.first["name"]).to eq("P:log:L")
+      expect(body.first["name"]).to eq("P:logs:L")
     end
   end
 
   describe "GET /api/adapters/:name" do
     it "returns a single adapter" do
-      get "/api/adapters/P%3Alog%3AL"
+      get "/api/adapters/P%3Alogs%3AL"
       expect(last_response.status).to eq(200)
       body = JSON.parse(last_response.body)
-      expect(body["name"]).to eq("P:log:L")
+      expect(body["name"]).to eq("P:logs:L")
     end
 
     it "returns 404 for unknown adapter" do

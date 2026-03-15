@@ -1,20 +1,18 @@
 require "spec_helper"
 
 RSpec.describe Resource do
-  let(:resource) { Resource.new("log") }
+  let(:manager) { ResourceManager.new }
+  let(:resource) { manager.logs }
 
-  describe "#name and #prefix" do
+  describe "#name" do
     it "exposes the building name" do
-      expect(resource.name).to eq("log")
+      expect(resource.name).to eq("logs")
     end
+  end
 
-    it "defaults prefix to Config::RESOURCE_PREFIX" do
+  describe "#prefix" do
+    it "comes from the manager" do
       expect(resource.prefix).to eq(Config::RESOURCE_PREFIX)
-    end
-
-    it "accepts a custom prefix" do
-      r = Resource.new("log", prefix: "X")
-      expect(r.prefix).to eq("X")
     end
   end
 
@@ -44,10 +42,10 @@ RSpec.describe Resource do
 
   describe "#set_color" do
     it "switches the status lever on and sets the colour" do
-      FakeTimberborn.levers["P:log:S"]["state"] = false
+      FakeTimberborn.levers["P:logs:S"]["state"] = false
       resource.set_color("ff0000")
-      expect(FakeTimberborn.levers["P:log:S"]["state"]).to be true
-      expect(FakeTimberborn.levers["P:log:S"]["color"]).to eq("ff0000")
+      expect(FakeTimberborn.levers["P:logs:S"]["state"]).to be true
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("ff0000")
     end
   end
 
@@ -61,29 +59,88 @@ RSpec.describe Resource do
 
     it "#manufacture! switches on and sets green" do
       resource.manufacture!
-      expect(FakeTimberborn.levers["P:log:M"]["state"]).to be true
-      expect(FakeTimberborn.levers["P:log:S"]["color"]).to eq("00ff00")
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be true
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("00ff00")
     end
 
     it "#error! switches off and sets red" do
-      FakeTimberborn.levers["P:log:M"]["state"] = true
+      FakeTimberborn.levers["P:logs:M"]["state"] = true
       resource.error!
-      expect(FakeTimberborn.levers["P:log:M"]["state"]).to be false
-      expect(FakeTimberborn.levers["P:log:S"]["color"]).to eq("ff0000")
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be false
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("ff0000")
     end
 
     it "#insufficient_inputs! switches off and sets orange" do
-      FakeTimberborn.levers["P:log:M"]["state"] = true
+      FakeTimberborn.levers["P:logs:M"]["state"] = true
       resource.insufficient_inputs!
-      expect(FakeTimberborn.levers["P:log:M"]["state"]).to be false
-      expect(FakeTimberborn.levers["P:log:S"]["color"]).to eq("ffa500")
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be false
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("ffa500")
     end
 
     it "#stand_by! switches off and sets blue" do
-      FakeTimberborn.levers["P:log:M"]["state"] = true
+      FakeTimberborn.levers["P:logs:M"]["state"] = true
       resource.stand_by!
-      expect(FakeTimberborn.levers["P:log:M"]["state"]).to be false
-      expect(FakeTimberborn.levers["P:log:S"]["color"]).to eq("0000ff")
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be false
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("0000ff")
+    end
+  end
+
+  describe "#update_status!" do
+    it "applies manufacture! when logs should manufacture" do
+      FakeTimberborn.adapters["P:logs:H"]["state"] = false
+      resource.update_status!
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be true
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("00ff00")
+    end
+
+    it "applies stand_by! when high" do
+      FakeTimberborn.adapters["P:logs:H"]["state"] = true
+      resource.update_status!
+      expect(FakeTimberborn.levers["P:logs:M"]["state"]).to be false
+      expect(FakeTimberborn.levers["P:logs:S"]["color"]).to eq("0000ff")
+    end
+
+    it "applies insufficient_inputs! for planks when logs not at low" do
+      FakeTimberborn.adapters["P:planks:H"]["state"] = false
+      FakeTimberborn.adapters["P:logs:L"]["state"] = false
+      manager.planks.update_status!
+      expect(FakeTimberborn.levers["P:planks:M"]["state"]).to be false
+      expect(FakeTimberborn.levers["P:planks:S"]["color"]).to eq("ffa500")
+    end
+  end
+
+
+  describe "#dependencies" do
+    it "returns an empty array for logs (no dependencies)" do
+      expect(manager.logs.dependencies).to eq([])
+    end
+
+    it "returns logs as a dependency of planks" do
+      expect(manager.planks.dependencies).to eq([manager.logs])
+    end
+  end
+
+  describe "#determine_status" do
+    it "returns :stand_by when high is true" do
+      FakeTimberborn.adapters["P:logs:H"]["state"] = true
+      expect(resource.determine_status).to eq(:stand_by)
+    end
+
+    it "returns :manufacture when not high and no dependencies" do
+      FakeTimberborn.adapters["P:logs:H"]["state"] = false
+      expect(resource.determine_status).to eq(:manufacture)
+    end
+
+    it "returns :insufficient_inputs for planks when logs is not at low" do
+      FakeTimberborn.adapters["P:planks:H"]["state"] = false
+      FakeTimberborn.adapters["P:logs:L"]["state"] = false
+      expect(manager.planks.determine_status).to eq(:insufficient_inputs)
+    end
+
+    it "returns :manufacture for planks when logs is at low" do
+      FakeTimberborn.adapters["P:planks:H"]["state"] = false
+      FakeTimberborn.adapters["P:logs:L"]["state"] = true
+      expect(manager.planks.determine_status).to eq(:manufacture)
     end
   end
 end
