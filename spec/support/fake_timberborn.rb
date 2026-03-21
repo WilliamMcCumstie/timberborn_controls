@@ -31,7 +31,9 @@ class FakeTimberborn < Sinatra::Base
     "P:explosives:S"     => { "name" => "P:explosives:S",     "state" => false, "springReturn" => false },
     "P:explosives:M"     => { "name" => "P:explosives:M",     "state" => false, "springReturn" => false },
     "P:fireworks:S"      => { "name" => "P:fireworks:S",      "state" => false, "springReturn" => false },
-    "P:fireworks:M"      => { "name" => "P:fireworks:M",      "state" => false, "springReturn" => false }
+    "P:fireworks:M"      => { "name" => "P:fireworks:M",      "state" => false, "springReturn" => false },
+    "P:berries:S"        => { "name" => "P:berries:S",        "state" => false, "springReturn" => false },
+    "P:berries:M"        => { "name" => "P:berries:M",        "state" => false, "springReturn" => false }
   }.freeze
 
   DEFAULT_ADAPTERS = {
@@ -62,7 +64,9 @@ class FakeTimberborn < Sinatra::Base
     "P:explosives:L"     => { "name" => "P:explosives:L",     "state" => false },
     "P:explosives:H"     => { "name" => "P:explosives:H",     "state" => false },
     "P:fireworks:L"      => { "name" => "P:fireworks:L",      "state" => false },
-    "P:fireworks:H"      => { "name" => "P:fireworks:H",      "state" => false }
+    "P:fireworks:H"      => { "name" => "P:fireworks:H",      "state" => false },
+    "P:berries:L"        => { "name" => "P:berries:L",        "state" => false },
+    "P:berries:H"        => { "name" => "P:berries:H",        "state" => false }
   }.freeze
 
   def self.reset!

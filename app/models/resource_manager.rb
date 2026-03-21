@@ -60,6 +60,10 @@ class ResourceManager
     @fireworks ||= Resource.new("fireworks", manager: self)
   end
 
+  def berries
+    @berries ||= Resource.new("berries", manager: self)
+  end
+
   def waters
     @waters ||= Resource.new("waters", manager: self)
   end
@@ -73,7 +77,7 @@ class ResourceManager
   end
 
   def all_resources
-    [logs, planks, gears, scrap_metals, metal_parts, kohlrabi, metal_blocks, pine_resins, treated_planks, waters, badwaters, extracts, explosives, fireworks]
+    [logs, planks, gears, scrap_metals, metal_parts, kohlrabi, metal_blocks, pine_resins, treated_planks, waters, badwaters, extracts, explosives, fireworks, berries]
   end
 
   def update_status!
