@@ -18,6 +18,22 @@ The default test resources (`HTTP Lever 1`, `HTTP Adapter 1`) use a different na
 
 ---
 
+## In-game physical setup
+
+For each resource, place the buildings in a single line, perpendicular to a road, in this exact order:
+
+1. **Adapter `L`** — connects to the resource sensor below to report the low-threshold state
+2. **Adapter `H`** — connects to the resource sensor below to report the high-threshold state
+3. **Resource sensor `L`** — low-threshold sensor, connected to the Adapter `L` above it
+4. **Road**
+5. **Resource sensor `H`** — high-threshold sensor, connected to the Adapter `H` above it
+6. **Lever `S`** — status indicator
+7. **Lever `M`** — manufacturing on/off switch
+
+The road splits the line in two: the low-side adapter/sensor pair sits on one side, and the high-side sensor/lever pair sits on the other. Each adapter must be directly connected to its corresponding resource sensor to relay that sensor's state over HTTP. Name each building using the standard convention (`{PREFIX}:{building_name}:{port}`, e.g. `P:logs:L`) so the app can discover and control them correctly.
+
+---
+
 ## Levers
 
 Levers are toggleable switches that can be turned on/off and assigned a colour.
